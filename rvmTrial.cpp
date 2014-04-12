@@ -39,9 +39,7 @@ rvm_t rvm_init(const char *directory){
 	 	numberOfDirectories++;
 		return rvm;
 	}
-	else{
-		exit(-1);
-	}
+
 
 }
 
@@ -56,7 +54,7 @@ void *rvm_map(rvm_t rvm, const char *segname, int size_to_create){
 	char* data;	
 	cout << "entered rvm_map\n";
 	//string directoryName = string(rvm.directoryName);
-	string homeDirectory = "/home/spurthi/spoorthi/CS6210/project4/prj4/";
+	string homeDirectory = "/home/spurthi/spoorthi/CS6210/project4/";
 	string pathToFile = homeDirectory + string(rvm.directoryName) + "/" + string(segname);
 	cout << pathToFile << "\n";
 	struct stat st;
@@ -87,14 +85,16 @@ void *rvm_map(rvm_t rvm, const char *segname, int size_to_create){
 		int fileSize = st.st_size;
 		if(fileSize == size_to_create){
 			ifstream in(pathToFile.c_str());
-			string contents((istreambuf_iterator<char>(in)), istreambuf_iterator<char>());
+			string temp((istreambuf_iterator<char>(in)), istreambuf_iterator<char>());
+			contents = temp;
 		}
 		else{
 			int fd = fileno(fptr);
-			ftruncate(fd,size_to_create);
+			if(ftruncate(fd,size_to_create)!=0){
+			cout<< "success\n";}
 			ifstream in(pathToFile.c_str());
-                        string contents((istreambuf_iterator<char>(in)), istreambuf_iterator<char>());
-
+                        string temp((istreambuf_iterator<char>(in)), istreambuf_iterator<char>());
+			contents = temp;
 
 		}
 
@@ -102,7 +102,7 @@ void *rvm_map(rvm_t rvm, const char *segname, int size_to_create){
 	}
 	segment *newSegment = (segment*)malloc(sizeof(segment));
         newSegment->segmentName = segname;
-        newSegment->segmentData = contents.c_str();
+        newSegment->segmentData = (void*)contents.c_str();
         newSegment->segmentSize = size_to_create;
         newSegment->mapped = true;
         rvm.segmentList.push_back(newSegment);
@@ -145,7 +145,12 @@ void *rvm_map(rvm_t rvm, const char *segname, int size_to_create){
  *@returns void* (data contained in the segment)
  */
 void rvm_unmap(rvm_t rvm, void *segbase){
-//	rvm->map.erase(char(segbase));
+	for(vector<Segment>::size_type i = 0; i != rvm.segmentList.size(); i++){
+        	if(segbase == rvm.segmentList[i]->segmentData){
+                 	rvm.segmentList.erase(rvm.segmentList.begin()+i);
+                        }
+                }
+
 }
 
 //destroy a segment completely, erasing its backing store. This function should not be called on a segment that is currently mapped.
@@ -253,15 +258,21 @@ int main(){
       perror("fork");
       exit(2);
      }
-    printf("in main \n");
+    //printf("in main \n");
      if(pid == 0) {
      rvm_t rvm;
      trans_t trans;
-     char* segs[1];
+     char* segs[2];
 
       rvm = rvm_init("rvm_segments");
+ 	cout<< "just before calling map\n";
      //rvm_destroy(rvm, "testseg");
-      segs[0] = (char *) rvm_map(rvm, "test2.txt", 10000);
+      segs[0] = (char*) rvm_map(rvm, "test3.txt", 30);
+	cout<<"finished map\n";
+      cout << segs[0];
+      rvm_unmap(rvm,segs[0]);
+	segs[1] =  (char*)rvm_map(rvm,"test3.txt",100);
+     //segs[0] = (char*)rvm_map(
      // cout << rvm.segmentList << "\n";
       exit(0);
      }
