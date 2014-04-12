@@ -52,7 +52,7 @@ rvm_t rvm_init(const char *directory){
  */
 void *rvm_map(rvm_t rvm, const char *segname, int size_to_create){
 
-
+	string contents;
 	char* data;	
 	cout << "entered rvm_map\n";
 	//string directoryName = string(rvm.directoryName);
@@ -72,15 +72,22 @@ void *rvm_map(rvm_t rvm, const char *segname, int size_to_create){
         	newSegment->segmentName = segname;
         	newSegment->segmentData = (void*)malloc(sizeof(size_to_create));
         	newSegment->segmentSize = size_to_create;
-   		newSegment->mapped = true;
+   		newSegment->mapped = false;
         	rvm.segmentList.push_back(newSegment);
 		cout << rvm.segmentList.size() << "\n";
+		return newSegment->segmentData;
 	}
 	else{
+
+		for(vector<Segment>::size_type i = 0; i != rvm.segmentList.size(); i++){
+                	if(strcmp(segname,rvm.segmentList[i].segmentName) == 0){
+				exit(-1);
+			}
+		}
 		int fileSize = st.st_size;
 		if(fileSize == size_to_create){
 			ifstream in(pathToFile);
-			string contents((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+			contents((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
 		}
 		else{
 
@@ -91,18 +98,12 @@ void *rvm_map(rvm_t rvm, const char *segname, int size_to_create){
 
 	}
 	segment *newSegment = (segment*)malloc(sizeof(segment));
-                newSegment->segmentName = segname;
-                newSegment->segmentData = (void*)malloc(sizeof(size_to_create));
-                newSegment->segmentSize = size_to_create;
-                newSegment->mapped = true;
-                rvm.segmentList.push_back(newSegment);
-                cout << rvm.segmentList.size() << "\n";
-
-
-
-
-
-*/
+        newSegment->segmentName = segname;
+        newSegment->segmentData = contents.c_str();
+        newSegment->segmentSize = size_to_create;
+        newSegment->mapped = true;
+        rvm.segmentList.push_back(newSegment);
+        return newSegment.segmentData;
 
 
 
