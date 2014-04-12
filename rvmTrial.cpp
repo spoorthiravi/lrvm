@@ -80,17 +80,20 @@ void *rvm_map(rvm_t rvm, const char *segname, int size_to_create){
 	else{
 
 		for(vector<Segment>::size_type i = 0; i != rvm.segmentList.size(); i++){
-                	if(strcmp(segname,rvm.segmentList[i].segmentName) == 0){
+                	if(strcmp(segname,rvm.segmentList[i]->segmentName) == 0){
 				exit(-1);
 			}
 		}
 		int fileSize = st.st_size;
 		if(fileSize == size_to_create){
-			ifstream in(pathToFile);
-			contents((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+			ifstream in(pathToFile.c_str());
+			string contents((istreambuf_iterator<char>(in)), istreambuf_iterator<char>());
 		}
 		else{
-
+			int fd = fileno(fptr);
+			ftruncate(fd,size_to_create);
+			ifstream in(pathToFile.c_str());
+                        string contents((istreambuf_iterator<char>(in)), istreambuf_iterator<char>());
 
 
 		}
@@ -103,7 +106,7 @@ void *rvm_map(rvm_t rvm, const char *segname, int size_to_create){
         newSegment->segmentSize = size_to_create;
         newSegment->mapped = true;
         rvm.segmentList.push_back(newSegment);
-        return newSegment.segmentData;
+        return newSegment->segmentData;
 
 
 
