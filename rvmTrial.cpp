@@ -60,17 +60,17 @@ void *rvm_map(rvm_t rvm, const char *segname, int size_to_create){
 
 	string contents;
 	//char* data;	
-	cout << "entered rvm_map\n";
+	cout << "entering func: rvm_map\n";
 	//string directoryName = string(rvm.directoryName);
 	string homeDirectory = "/home/spurthi/spoorthi/CS6210/project4/";
 	string pathToFile = homeDirectory + string(rvm.directoryName) + "/" + string(segname);
 	cout << pathToFile << "\n";
 	struct stat st;
-	int status = stat(pathToFile.c_str(), &st);
+	stat(pathToFile.c_str(), &st);
 
 	FILE* fptr = fopen(pathToFile.c_str(), "rw+");
 	if(fptr == NULL){
-		cout<< "enters NULL";
+		cout<< "creating new file\n";
 		ofstream ofs(pathToFile.c_str(), std::ios::binary | std::ios::out);
     		ofs.seekp(size_to_create - 1);
     		ofs.write("", 1);
@@ -81,7 +81,8 @@ void *rvm_map(rvm_t rvm, const char *segname, int size_to_create){
    		newSegment->mapped = true;
 		newSegment->beingModified = false;
         	rvm.segmentList.push_back(newSegment);
-		cout << rvm.segmentList.size() << "\n";
+		cout << "segmentList size = " << rvm.segmentList.size() << "\n";
+		cout << "exiting func: rvm_map\n";
 		return newSegment->segmentData;
 	}
 	else{
@@ -101,17 +102,16 @@ void *rvm_map(rvm_t rvm, const char *segname, int size_to_create){
 			int fd = fileno(fptr);
 			cout << st.st_size;
 			if(ftruncate(fd,size_to_create)==0){
-			cout<< "success\n";
-			cout << st.st_size;}
-else {
-	 
-	 printf ("Error opening file unexist.ent: %s\n",strerror(errno));}
+				cout<< "success\n";
+				cout << st.st_size;
+			}
+			else {
+	 			printf ("Error opening file unexist.ent: %s\n",strerror(errno));
+			}
 			ifstream in(pathToFile.c_str());
                         string temp((istreambuf_iterator<char>(in)), istreambuf_iterator<char>());
 			contents = temp;
-
-		}
-
+		}		
 
 	}
 	segment *newSegment = (segment*)malloc(sizeof(segment));
@@ -121,55 +121,30 @@ else {
         newSegment->mapped = true;
 	newSegment->beingModified = false;
         rvm.segmentList.push_back(newSegment);
+	cout << "segmentList size = " << rvm.segmentList.size() << "\n";
+        cout << "exiting func: rvm_map\n";
         return newSegment->segmentData;
 
-
-
-}	
-	/*for(vector<Segment>::size_type i = 0; i != rvm.segmentList.size(); i++){
-		if(strcmp(segname,rvm.segmentList[i].segmentName) == 0){
-			if(size_to_create == rvm.segmentList[i].segmentSize){
-				segmentList[i].mapped = true;
-			}
-			else{
-				rvm.segmentList[i].segmentData = realloc(rvm.segmentList[i].segmentData,size_to_create);
-				rvm.segmentList[i].segmentSize = size_to_create;
-				segmentList[i].mapped = true;
-			}
-			if(map[segmentList[i].segmentName] != 1){
-                        	map[segmentList[i].segmentName] = 1;
-                        }
-			rvm.segmentList[i].undoLog.logData = (void*)malloc(sizeof(size_to_create));
-			return rvm.segmentList[i].segmentData;
-
-
-		}
-	}
-	segment newSegment = (segment*)malloc(sizeof(segment));
-	newSegment.segmentName = segname;
-	newSegment.segmentData = (void*)malloc(sizeof(size_to_create));
-	newSegment.segmentSize = size_to_create;
-	newSegment.mapped = true;
-	map[newSegment.segmentName] = 1;
-	rvm.segmentList.push_back(newSegment);	
-	return newSegment.segmentData;
-}*/
+}
+	
 /**
  *@brief unmap a segment from memory.
  *@param rvm, segmnet name, size of segment to be created
  *@returns void* (data contained in the segment)
  */
 void rvm_unmap(rvm_t rvm, void *segbase){
+	cout << "entered func: rvm_unmap\n";
 	for(vector<Segment>::size_type i = 0; i != rvm.segmentList.size(); i++){
         	if(segbase == rvm.segmentList[i]->segmentData){
                  	rvm.segmentList.erase(rvm.segmentList.begin()+i);
                 }
         }
+	cout << "segmentList size =" << rvm.segmentList.size() << "\n";
+	cout << "exiting func: rvm_unmap\n";
 }
 
-//destroy a segment completely, erasing its backing store. This function should not be called on a segment that is currently mapped.
 /**
- *@brief map a segment from disk into memory
+ *@brief destroy a segment completely, erasing its backing store. This function should not be called on a segment that is currently mapped.
  *@param rvm, segmnet name, size of segment to be created
  *@returns void* (data contained in the segment)
  */
@@ -200,17 +175,18 @@ void rvm_destroy(rvm_t rvm, const char *segname){
  *@returns void* (data contained in the segment)
  */
 trans_t rvm_begin_trans(rvm_t rvm, int numsegs, void **segbases){
-	 //vector<segment*> listOfSegments = getSegments(rvm,segbases,numsegs);
-	 vector<segment*> listOfSegments;	
-	 for(int j = 0;j < numsegs;j++){
-                for(vector<segment*>::size_type i = 0; i != rvm.segmentList.size(); i++){
-                        if(segbases[j] == rvm.segmentList[i]->segmentData){
+	cout << "entering func: rvm_begin_trans\n";
+	//vector<segment*> listOfSegments = getSegments(rvm,segbases,numsegs);
+	vector<segment*> listOfSegments;	
+	for(int j = 0;j < numsegs;j++){
+		for(vector<segment*>::size_type i = 0; i != rvm.segmentList.size(); i++){
+                	if(segbases[j] == rvm.segmentList[i]->segmentData){
                                 listOfSegments.push_back(rvm.segmentList[i]);
                         }
                 }
         }
 
-	 for(vector<segment*>::size_type k = 0; k != listOfSegments.size(); k++){
+	for(vector<segment*>::size_type k = 0; k != listOfSegments.size(); k++){
 		if(listOfSegments[k]->beingModified){
 			return -1;
 		}
@@ -223,6 +199,7 @@ trans_t rvm_begin_trans(rvm_t rvm, int numsegs, void **segbases){
 	globalTransactionList.push_back(newTransaction);
 	rvm.transactionList.push_back(newTransaction);
 	TID++;
+	cout << "exiting func: rvm_bein_trans\n";
 	return newTransaction->transactionID;
 }
 
@@ -233,24 +210,43 @@ trans_t rvm_begin_trans(rvm_t rvm, int numsegs, void **segbases){
  */
 void rvm_about_to_modify(trans_t tid, void *segbase, int offset, int size){
 	//with tid get transaction
+	cout << "entering func: rvm_about_to_modify\n";
+	segment *Segment = (segment*)malloc(sizeof(segment));
 	transaction *newTransaction = (transaction*)malloc(sizeof(transaction));
 	for(vector<transaction*>::size_type i = 0; i != globalTransactionList.size(); i++){
 		if(globalTransactionList[i]->transactionID == tid){
 			newTransaction = globalTransactionList[i];
+			cout << "newTransaction id =" << newTransaction->transactionID << "\n";
 
 		}
 	}
 	for(int i = 0; i < newTransaction->numOfSegs; i++){
 		if(newTransaction->segbases[i] == segbase){
+			cout << "enters first if\n";
+		//	cout << "i=" << i << "\n";
+			/*for(vector<segment*>::size_type k = 0; k != RVM.segmentList.size(); k++){
+				cout << "RVMsegmentList size = " << RVM.segmentList.size() << "\n";
+                        	if(segbase == RVM.segmentList[k]->segmentData){
+					cout << "enters second if\n";
+					Segment = RVM.segmentList[k];
+					RVM.segmentList[k]->beingModified = true;
+				}
+			}*/
 			string originalString = string((char*)(segbase));
 			log *undoRecord = (log*)malloc(sizeof(log));
 			undoRecord->size = size;
-			originalString.copy((char*)undoRecord->data,size,offset); 
+			undoRecord->offset = offset;
+			//undoRecord->segmentName = Segment->segmentName;
+			originalString.copy((char*)undoRecord->data,size,offset);
+			cout << "copies tring to undoRecord\n"; 
 			newTransaction->undoLogList.push_back(undoRecord);			
 						
 		}
+		cout << "i=" << i<< "\n";
 
 	}
+	cout << "undoLogList size = " << newTransaction->undoLogList.size() << "\n";
+	cout << "exiting func: rvm_about_to_modify\n";
 
 }
 /**
@@ -259,8 +255,9 @@ void rvm_about_to_modify(trans_t tid, void *segbase, int offset, int size){
  *@returns void* (data contained in the segment)
  */
 void rvm_commit_trans(trans_t tid){
+	cout << "entering func: rvm_commit_trans\n";
 	transaction *Transaction = (transaction*)malloc(sizeof(transaction));
-	segment *Segment = (segment*)malloc(sizeof(segment));
+	//segment *Segment = (segment*)malloc(sizeof(segment));
         for(vector<transaction*>::size_type i = 0; i != globalTransactionList.size(); i++){
                 if(globalTransactionList[i]->transactionID == tid){
                         Transaction = globalTransactionList[i];
@@ -270,19 +267,21 @@ void rvm_commit_trans(trans_t tid){
 	for(int j = 0;j<Transaction->numOfSegs;j++){
 		for(vector<segment*>::size_type k = 0; k != RVM.segmentList.size(); k++){
                 	if(Transaction->segbases[j] == RVM.segmentList[k]->segmentData){
-				char* filename = RVM.segmentList[k].segmentName;
-				char* directoryName = RVM.directoryName;
-				string pathToFile = string(directoryName) + "/" + string(filename);
-				ofstream outfile(pathToString.c_str(),ofstream::binary);
-				outfile.write (Transaction->segbases[j],sizeof(Transaction->segbases[j]));
+				RVM.segmentList[k]->beingModified = false;
+				string filename = RVM.segmentList[k]->segmentName;
+				string directoryName = RVM.directoryName;
+				string pathToFile = directoryName + "/" + filename;
+				cout << "pathToFile =" << pathToFile;
+				ofstream outfile(pathToFile.c_str(),ofstream::binary);
+				outfile.write ((char*)Transaction->segbases[j],sizeof(Transaction->segbases[j]));
 			}
 		}
 	}
 
 	//remove all enries from undo log record
-	Transaction-
-
-
+	Transaction->undoLogList.clear();
+	cout << "undoLogList size =" << Transaction->undoLogList.size() << "\n";
+	cout << "exiting func: rvm_commit_trans\n";
 
 }
 /**
@@ -291,8 +290,30 @@ void rvm_commit_trans(trans_t tid){
  *@returns void* (data contained in the segment)
  */
 void rvm_abort_trans(trans_t tid){
+	transaction *Transaction = (transaction*)malloc(sizeof(transaction));
+        segment *Segment = (segment*)malloc(sizeof(segment));
+        for(vector<transaction*>::size_type i = 0; i != globalTransactionList.size(); i++){
+                if(globalTransactionList[i]->transactionID == tid){
+                        Transaction = globalTransactionList[i];
 
+                }
+        }
+	for(int j = 0;j<Transaction->numOfSegs;j++){
+		for(vector<segment*>::size_type k = 0; k != RVM.segmentList.size(); k++){
+                        if(Transaction->segbases[j] == RVM.segmentList[k]->segmentData){
+				Segment = RVM.segmentList[k];
+				Segment->beingModified = false;
+				for(vector<log*>::size_type l = 0; l !=Transaction->undoLogList.size(); k++){
+					if(Segment->segmentName == Transaction->undoLogList[l]->segmentName){
+					string undoRecordData = string((char*)Transaction->undoLogList[l]->data);
+					undoRecordData.copy((char*)Segment->segmentData,Transaction->undoLogList[l]->size,Transaction->undoLogList[l]->offset);
 
+					}
+				}
+			}
+		}
+	}
+	return;
 
 }
 /**

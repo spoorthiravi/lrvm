@@ -5,8 +5,9 @@
 using namespace std;
 typedef struct Log{
 	int size;
+	int offset;
 	void* data;
-	struct segment;
+	const char* segmentName;
 }log;
 typedef struct Segment{
 	const char* segmentName;

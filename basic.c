@@ -8,7 +8,7 @@
 #include <sys/wait.h>
 
 #define TEST_STRING "hello, world"
-#define OFFSET2 1000
+#define OFFSET2 100
 
 
 /* proc1 writes some data, commits it, then exits */
@@ -19,7 +19,7 @@ void proc1()
      char* segs[1];
      
      rvm = rvm_init("rvm1");
-/*     rvm_destroy(rvm, "testseg");
+//     rvm_destroy(rvm, "testseg");
      segs[0] = (char *) rvm_map(rvm, "testseg", 10000);
 
      
@@ -32,7 +32,7 @@ void proc1()
      sprintf(segs[0]+OFFSET2, TEST_STRING);
      
      rvm_commit_trans(trans);
-*/
+
      abort();
 }
 
