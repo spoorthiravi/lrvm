@@ -17,9 +17,15 @@ typedef struct Segment{
 	bool beingModified;
 	Log undoLog;
 }segment;
+typedef struct transaction{
+	trans_t transactionID;
+	void **segbases;	
+}transaction;
+
 typedef struct rvm_t
 {
 int rvmID;
 const char* directoryName;
 vector<segment*> segmentList;
+vector<transaction> transactionList;
 }rvm_t;

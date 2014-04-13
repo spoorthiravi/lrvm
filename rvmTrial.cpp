@@ -7,6 +7,7 @@
 #include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include<errno.h>
 #include<iostream>
 #include<fstream>
 /**
@@ -33,6 +34,8 @@ rvm_t rvm_init(const char *directory){
 	int status;
 	rvm_t rvm;
 	rvm.rvmID = 1;
+	rvm.transactionList;
+	rvm.segmentList;
 	rvm.directoryName = directory;
 	status = mkdir(directory,S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 	if(status == 0){
@@ -60,7 +63,7 @@ void *rvm_map(rvm_t rvm, const char *segname, int size_to_create){
 	struct stat st;
 	int status = stat(pathToFile.c_str(), &st);
 
-	FILE* fptr = fopen(pathToFile.c_str(), "r");
+	FILE* fptr = fopen(pathToFile.c_str(), "rw+");
 	if(fptr == NULL){
 		cout<< "enters NULL";
 		ofstream ofs(pathToFile.c_str(), std::ios::binary | std::ios::out);
@@ -70,14 +73,15 @@ void *rvm_map(rvm_t rvm, const char *segname, int size_to_create){
         	newSegment->segmentName = segname;
         	newSegment->segmentData = (void*)malloc(sizeof(size_to_create));
         	newSegment->segmentSize = size_to_create;
-   		newSegment->mapped = false;
+   		newSegment->mapped = true;
+		newSegment->beingModified = false;
         	rvm.segmentList.push_back(newSegment);
 		cout << rvm.segmentList.size() << "\n";
 		return newSegment->segmentData;
 	}
 	else{
 
-		for(vector<Segment>::size_type i = 0; i != rvm.segmentList.size(); i++){
+		for(vector<segment*>::size_type i = 0; i != rvm.segmentList.size(); i++){
                 	if(strcmp(segname,rvm.segmentList[i]->segmentName) == 0){
 				exit(-1);
 			}
@@ -90,8 +94,13 @@ void *rvm_map(rvm_t rvm, const char *segname, int size_to_create){
 		}
 		else{
 			int fd = fileno(fptr);
-			if(ftruncate(fd,size_to_create)!=0){
-			cout<< "success\n";}
+			cout << st.st_size;
+			if(ftruncate(fd,size_to_create)==0){
+			cout<< "success\n";
+			cout << st.st_size;}
+else {
+	 
+	 printf ("Error opening file unexist.ent: %s\n",strerror(errno));}
 			ifstream in(pathToFile.c_str());
                         string temp((istreambuf_iterator<char>(in)), istreambuf_iterator<char>());
 			contents = temp;
@@ -105,6 +114,7 @@ void *rvm_map(rvm_t rvm, const char *segname, int size_to_create){
         newSegment->segmentData = (void*)contents.c_str();
         newSegment->segmentSize = size_to_create;
         newSegment->mapped = true;
+	newSegment->beingModified = false;
         rvm.segmentList.push_back(newSegment);
         return newSegment->segmentData;
 
@@ -170,14 +180,22 @@ void rvm_destroy(rvm_t rvm, const char *segname){
 	cout << "wrong segname or segment is a mapped segment";
 	return;*/
 }
+
+
 /**
  *@brief begin a transaction that will modify the segments listed in segbases. If any of the specified segments is already being modified by a transaction, then the call should    fail and return (trans_t) -1. Note that trant_t needs to be able to be typecasted to an integer type.
  *@param rvm, segmnet name, size of segment to be created
  *@returns void* (data contained in the segment)
  */
 trans_t rvm_begin_trans(rvm_t rvm, int numsegs, void **segbases){
-//	if(**segnames == )	
+	 vector<segment*> listOfSegments = getSegments(rvm,);
+	 for(vetor<segment*>::size_type i = 0; i != listOfSegments.size(); i++){
+		if(listOfSegments[i]->beingModified){
+			return -1;
+		}
 
+	}
+	return 0;
 }
 
 /**
@@ -225,6 +243,17 @@ void rvm_truncate_log(rvm_t rvm){
 
 }
 
+vector<segment*> getSegment(rvm_t rvm,void **segbases){
+	vector<segment*> listOfSegments; 
+	for(int j = 0;j < segbases.size();j++){
+ 		for(vetor<segment*>::size_type i = 0; i != rvm.segmentList.size(); i++){
+                	if(segbases[j] == rvm.segmentList[i]->segmentData){
+                        	listOfSegments.push_back(rvm.segmentList[i]);
+                        }
+                }
+	}
+return listOfSegments;
+}
 
 /* proc1 writes some data, commits it, then exits */
 /*void proc1()
