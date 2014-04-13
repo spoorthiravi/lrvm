@@ -10,6 +10,7 @@
 #include<errno.h>
 #include<iostream>
 #include<fstream>
+#include <cstring>
 /**
  *@author Spoorthi Ravi
  */
@@ -189,7 +190,7 @@ trans_t rvm_begin_trans(rvm_t rvm, int numsegs, void **segbases){
             return -1;
         }
     }
-    transaction newTransaction;
+    transaction newTransaction = {};
     newTransaction.transactionID = TID;
     newTransaction.numOfSegs = numsegs;
     newTransaction.undoLogList;
@@ -210,14 +211,17 @@ trans_t rvm_begin_trans(rvm_t rvm, int numsegs, void **segbases){
  */
 void rvm_about_to_modify(trans_t tid, void *segbase, int offset, int size){
     //with tid get transaction
+    int index;
     cout << "entering func: rvm_about_to_modify\n";
     segment *Segment = (segment*)malloc(sizeof(segment));
     //transaction *newTransaction = (transaction*)malloc(sizeof(transaction));
-    transaction newTransaction;
+    transaction newTransaction = {};
     for(vector<transaction>::size_type i = 0; i != globalTransactionList.size(); i++){
         if(globalTransactionList[i].transactionID == tid){
             newTransaction = globalTransactionList[i];
+	    index = i;
             cout << "newTransaction id = " << newTransaction.transactionID << "\n";
+	    globalTransactionList.erase(globalTransactionList.begin() + i);
 	    break;
         }
     }
@@ -248,12 +252,12 @@ void rvm_about_to_modify(trans_t tid, void *segbase, int offset, int size){
             newTransaction.undoLogList.push_back(undoRecord);    
 	    cout << "undoLogList size =" << newTransaction.undoLogList.size() << "\n";        
             cout << "Done with segbase" << "\n";
-	    free(backup); 
+	    globalTransactionList.insert((globalTransactionList.begin()+index),newTransaction);
+	    //free(backup); 
 	    break;
         }
         cout << "i=" << i<< "\n";
     }
-    cout << "undoLogList size = " << newTransaction.undoLogList.size() << "\n";
     cout << "exiting func: rvm_about_to_modify\n";
 
 }
@@ -263,33 +267,37 @@ void rvm_about_to_modify(trans_t tid, void *segbase, int offset, int size){
  *@returns void* (data contained in the segment)
  */
 void rvm_commit_trans(trans_t tid){
-/*    cout << "entering func: rvm_commit_trans\n";
-    transaction *Transaction = (transaction*)malloc(sizeof(transaction));
+    int index;
+    cout << "entering func: rvm_commit_trans\n";
+    transaction Transaction = {};
     //segment *Segment = (segment*)malloc(sizeof(segment));
-    for(vector<transaction*>::size_type i = 0; i != globalTransactionList.size(); i++){
-        if(globalTransactionList[i]->transactionID == tid){
+    for(vector<transaction>::size_type i = 0; i != globalTransactionList.size(); i++){
+        if(globalTransactionList[i].transactionID == tid){
             Transaction = globalTransactionList[i];
+	    index =(int) i;
+	    globalTransactionList.erase(globalTransactionList.begin()+index);
         }
     }
-    for(int j = 0;j<Transaction->numOfSegs;j++){
+    for(int j = 0;j<Transaction.numOfSegs;j++){
         for(vector<segment*>::size_type k = 0; k != RVM.segmentList.size(); k++){
-            if(Transaction->segbases[j] == RVM.segmentList[k]->segmentData){
+            if(Transaction.segbases[j] == RVM.segmentList[k]->segmentData){
                 RVM.segmentList[k]->beingModified = false;
                 string filename = RVM.segmentList[k]->segmentName;
                 string directoryName = RVM.directoryName;
                 string pathToFile = directoryName + "/" + filename;
                 cout << "pathToFile =" << pathToFile;
                 ofstream outfile(pathToFile.c_str(),ofstream::binary);
-                outfile.write ((char*)Transaction->segbases[j],sizeof(Transaction->segbases[j]));
+                outfile.write ((char*)Transaction.segbases[j],sizeof(Transaction.segbases[j]));
             }
         }
     }
 
     //remove all enries from undo log record
-    Transaction->undoLogList.clear();
-    cout << "undoLogList size =" << Transaction->undoLogList.size() << "\n";
+    Transaction.undoLogList.clear();
+    globalTransactionList.insert((globalTransactionList.begin() + index),Transaction);
+    cout << "undoLogList size =" << Transaction.undoLogList.size() << "\n";
     cout << "exiting func: rvm_commit_trans\n";
-*/
+
 }
 /**
  *@brief undo all changes that have happened within the specified transaction.
