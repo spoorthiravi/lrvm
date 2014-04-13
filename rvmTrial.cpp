@@ -253,34 +253,40 @@ void rvm_about_to_modify(trans_t tid, void *segbase, int offset, int size){
  *@param rvm, segmnet name, size of segment to be created
  *@returns void* (data contained in the segment)
  */
+
 void rvm_commit_trans(trans_t tid){
-/*    cout << "entering func: rvm_commit_trans\n";
-    transaction *Transaction = (transaction*)malloc(sizeof(transaction));
+    int index;
+    cout << "entering func: rvm_commit_trans\n";
+    transaction Transaction;
     //segment *Segment = (segment*)malloc(sizeof(segment));
-    for(vector<transaction*>::size_type i = 0; i != globalTransactionList.size(); i++){
-        if(globalTransactionList[i]->transactionID == tid){
+    for(vector<transaction>::size_type i = 0; i != globalTransactionList.size(); i++){
+        if(globalTransactionList[i].transactionID == tid){
             Transaction = globalTransactionList[i];
+            index =(int) i;
+            globalTransactionList.erase(globalTransactionList.begin()+index);
+	    break;
         }
     }
-    for(int j = 0;j<Transaction->numOfSegs;j++){
-        for(vector<segment*>::size_type k = 0; k != RVM.segmentList.size(); k++){
-            if(Transaction->segbases[j] == RVM.segmentList[k]->segmentData){
-                RVM.segmentList[k]->beingModified = false;
-                string filename = RVM.segmentList[k]->segmentName;
+    for(int j = 0;j<Transaction.numOfSegs;j++){
+        for(vector<segment>::size_type k = 0; k != RVM.segmentList.size(); k++){
+            if(Transaction.segbases[j] == RVM.segmentList[k].segmentData){
+                RVM.segmentList[k].beingModified = false;
+                string filename = RVM.segmentList[k].segmentName;
                 string directoryName = RVM.directoryName;
                 string pathToFile = directoryName + "/" + filename;
                 cout << "pathToFile =" << pathToFile;
                 ofstream outfile(pathToFile.c_str(),ofstream::binary);
-                outfile.write ((char*)Transaction->segbases[j],sizeof(Transaction->segbases[j]));
+                outfile.write ((char*)Transaction.segbases[j],sizeof(Transaction.segbases[j]));
             }
         }
     }
 
     //remove all enries from undo log record
-    Transaction->undoLogList.clear();
-    cout << "undoLogList size =" << Transaction->undoLogList.size() << "\n";
+    Transaction.undoLogList.clear();
+    globalTransactionList.insert((globalTransactionList.begin() + index),Transaction);
+    cout << "undoLogList size =" << Transaction.undoLogList.size() << "\n";
     cout << "exiting func: rvm_commit_trans\n";
-*/
+
 }
 /**
  *@brief undo all changes that have happened within the specified transaction.

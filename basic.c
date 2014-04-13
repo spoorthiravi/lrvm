@@ -31,7 +31,7 @@ void proc1()
      rvm_about_to_modify(trans, segs[0], OFFSET2, 100);
      sprintf(segs[0]+OFFSET2, TEST_STRING);
      
-    // rvm_commit_trans(trans);
+     rvm_commit_trans(trans);
 
      abort();
 }
