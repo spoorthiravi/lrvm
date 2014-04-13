@@ -21,4 +21,4 @@ $(LIBRARY): $(LIB_OBJ)
 	$(RANLIB) $(LIBRARY)
 
 clean:
-	$(RM) $(LIBRARY) $(LIB_OBJ)
+	$(RM) $(LIBRARY) $(LIB_OBJ) rvm1
