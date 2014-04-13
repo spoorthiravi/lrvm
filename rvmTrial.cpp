@@ -66,7 +66,7 @@ void *rvm_map(rvm_t rvm, const char *segname, int size_to_create){
 
     FILE* fptr = fopen(pathToFile.c_str(), "rw+");
     if(fptr == NULL){
-        ofstream ofs(pathToFile.c_str(), std::ios::binary | std::ios::out);
+        ofstream ofs(pathToFile.c_str(), std::ios::out);
         ofs.seekp(size_to_create - 1);
         ofs.write("", 1);
         segment newSegment;
@@ -91,6 +91,7 @@ void *rvm_map(rvm_t rvm, const char *segname, int size_to_create){
             ifstream in(pathToFile.c_str());
             string temp((istreambuf_iterator<char>(in)), istreambuf_iterator<char>());
             contents = temp;
+	    in.close();
         } else {
             int fd = fileno(fptr);
             cout << st.st_size;
@@ -104,6 +105,7 @@ void *rvm_map(rvm_t rvm, const char *segname, int size_to_create){
             ifstream in(pathToFile.c_str());
             string temp((istreambuf_iterator<char>(in)), istreambuf_iterator<char>());
             contents = temp;
+            in.close();
         }        
     }
     segment newSegment;
@@ -115,6 +117,7 @@ void *rvm_map(rvm_t rvm, const char *segname, int size_to_create){
     rvm.segmentList.push_back(newSegment);
     RVM.segmentList.push_back(newSegment);
     cout << "exiting func: rvm_map\n";
+    fclose(fptr);
     return newSegment.segmentData;
 }
     
@@ -267,6 +270,8 @@ void rvm_commit_trans(trans_t tid){
 	        break;
         }
     }
+
+    //cout<< "sebases size = " << sizeof(Transaction.segbases)<<"\n";
     for(int j = 0;j<Transaction.numOfSegs;j++){
         for(vector<segment>::size_type k = 0; k != RVM.segmentList.size(); k++){
             if(Transaction.segbases[j] == RVM.segmentList[k].segmentData){
@@ -276,10 +281,17 @@ void rvm_commit_trans(trans_t tid){
                 //string directoryName = RVM.directoryName;
                 //cout << directoryName << "\n";
                 //string pathToFile = directoryName + "/" + filename;
-                string pathToFile = string(RVM.segmentList[k].segmentName) + string("/") + (RVM.directoryName);
+		string homeDirectory = "/home/spurthi/spoorthi/CS6210/project4/";
+                string pathToFile = homeDirectory + RVM.directoryName + string("/") + string(RVM.segmentList[k].segmentName);
                 cout << "pathToFile = " << pathToFile << "\n";
-                ofstream outfile(pathToFile.c_str(),ofstream::binary);
-                outfile.write ((char*)Transaction.segbases[j],sizeof(Transaction.segbases[j]));
+		FILE *fp;
+		fp = fopen(pathToFile.c_str(), "wb");
+		cout << "file opened successfully\n";
+  		fwrite ((char*)Transaction.segbases[j],sizeof(char),RVM.segmentList[k].segmentSize,fp);
+		cout << "write completed \n";
+  		fclose (fp);
+                //ofstream outfile(pathToFile.c_str(),ofstream::binary);
+                //outfile.write ((char*)Transaction.segbases[j],RVM.segmentList[k].segmentSize);
                 cout << "Finished writing to the file \n";
             }
         }
@@ -370,8 +382,8 @@ return listOfSegments;
      
      rvm_commit_trans(trans);
      abort();
-}
-*/
+}*/
+
 /*int main(){
      int pid;
 
@@ -380,24 +392,28 @@ return listOfSegments;
       perror("fork");
       exit(2);
      }
-    //printf("in main \n");
+    printf("in main \n");
      if(pid == 0) {
      rvm_t rvm;
      trans_t trans;
-     char* segs[2];
+	char* segs[1];
 
-      rvm = rvm_init("rvm_segments");
-     cout<< "just before calling map\n";
+     rvm_init("rvm_segments");
      //rvm_destroy(rvm, "testseg");
-      segs[0] = (char*) rvm_map(rvm, "test3.txt", 30);
-    cout<<"finished map\n";
-      cout << segs[0];
-      rvm_unmap(rvm,segs[0]);
-    segs[1] =  (char*)rvm_map(rvm,"test3.txt",100);
-     //segs[0] = (char*)rvm_map(
-     // cout << rvm.segmentList << "\n";
-      exit(0);
-     }
+     segs[0] = (char *) rvm_map(rvm, "testseg", 10000);
+
+     
+     trans = rvm_begin_trans(rvm, 1, (void **) segs);
+     
+     rvm_about_to_modify(trans, segs[0], 0, 100);
+     sprintf(segs[0], "hello world");
+     
+     rvm_about_to_modify(trans, segs[0], 1000, 100);
+     sprintf(segs[0]+1000, "hello world");
+     
+     rvm_commit_trans(trans);
+     abort();
+    }
 
     // waitpid(pid, NULL, 0);
 
