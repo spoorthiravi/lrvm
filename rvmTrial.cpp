@@ -264,19 +264,23 @@ void rvm_commit_trans(trans_t tid){
             Transaction = globalTransactionList[i];
             index =(int) i;
             globalTransactionList.erase(globalTransactionList.begin()+index);
-	    break;
+	        break;
         }
     }
     for(int j = 0;j<Transaction.numOfSegs;j++){
         for(vector<segment>::size_type k = 0; k != RVM.segmentList.size(); k++){
             if(Transaction.segbases[j] == RVM.segmentList[k].segmentData){
                 RVM.segmentList[k].beingModified = false;
-                string filename = RVM.segmentList[k].segmentName;
-                string directoryName = RVM.directoryName;
-                string pathToFile = directoryName + "/" + filename;
-                cout << "pathToFile =" << pathToFile;
+                //string filename = RVM.segmentList[k].segmentName;
+                //cout << filename << "\n";
+                //string directoryName = RVM.directoryName;
+                //cout << directoryName << "\n";
+                //string pathToFile = directoryName + "/" + filename;
+                string pathToFile = string(RVM.segmentList[k].segmentName) + string("/") + (RVM.directoryName);
+                cout << "pathToFile = " << pathToFile << "\n";
                 ofstream outfile(pathToFile.c_str(),ofstream::binary);
                 outfile.write ((char*)Transaction.segbases[j],sizeof(Transaction.segbases[j]));
+                cout << "Finished writing to the file \n";
             }
         }
     }
