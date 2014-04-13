@@ -188,14 +188,28 @@ void rvm_destroy(rvm_t rvm, const char *segname){
  *@returns void* (data contained in the segment)
  */
 trans_t rvm_begin_trans(rvm_t rvm, int numsegs, void **segbases){
-	 vector<segment*> listOfSegments = getSegments(rvm,);
-	 for(vetor<segment*>::size_type i = 0; i != listOfSegments.size(); i++){
-		if(listOfSegments[i]->beingModified){
+	 //vector<segment*> listOfSegments = getSegments(rvm,segbases,numsegs);
+	 vector<segment*> listOfSegments;	
+	 for(int j = 0;j < numsegs;j++){
+                for(vector<segment*>::size_type i = 0; i != rvm.segmentList.size(); i++){
+                        if(segbases[j] == rvm.segmentList[i]->segmentData){
+                                listOfSegments.push_back(rvm.segmentList[i]);
+                        }
+                }
+        }
+
+	 for(vector<segment*>::size_type k = 0; k != listOfSegments.size(); k++){
+		if(listOfSegments[k]->beingModified){
 			return -1;
 		}
 
 	}
-	return 0;
+	transaction *newTransaction = (transaction*)malloc(sizeof(transaction));
+	newTransaction->transactionID = 1;
+	newTransaction->numOfSegs = numsegs;
+	newTransaction->segbases = segbases;
+	rvm.transactionList.push_back(newTransaction);
+	return newTransaction->transactionID;
 }
 
 /**
@@ -204,8 +218,14 @@ trans_t rvm_begin_trans(rvm_t rvm, int numsegs, void **segbases){
  *@returns void* (data contained in the segment)
  */
 void rvm_about_to_modify(trans_t tid, void *segbase, int offset, int size){
+	//with tid get transaction
+	for(int i = 0;i<transaction->numOfSegs;i++){
+		if(transaction->segbases[i] == segbase){
+			for(			
+		}
 
-
+	}
+		
 
 
 
@@ -243,17 +263,17 @@ void rvm_truncate_log(rvm_t rvm){
 
 }
 
-vector<segment*> getSegment(rvm_t rvm,void **segbases){
+/*vector<segment*> getSegment(rvm_t rvm,void **segbases,int numsegs){
 	vector<segment*> listOfSegments; 
-	for(int j = 0;j < segbases.size();j++){
- 		for(vetor<segment*>::size_type i = 0; i != rvm.segmentList.size(); i++){
+	for(int j = 0;j < numsegs;j++){
+ 		for(vector<segment*>::size_type i = 0; i != rvm.segmentList.size(); i++){
                 	if(segbases[j] == rvm.segmentList[i]->segmentData){
                         	listOfSegments.push_back(rvm.segmentList[i]);
                         }
                 }
 	}
 return listOfSegments;
-}
+}*/
 
 /* proc1 writes some data, commits it, then exits */
 /*void proc1()
