@@ -80,6 +80,7 @@ void *rvm_map(rvm_t rvm, const char *segname, int size_to_create){
         newSegment->mapped = true;
         newSegment->beingModified = false;
         rvm.segmentList.push_back(newSegment);
+        RVM.segmentList.push_back(newSegment);
         cout << "segmentList size = " << rvm.segmentList.size() << "\n";
         cout << "exiting func: rvm_map\n";
         return newSegment->segmentData;
@@ -117,6 +118,7 @@ void *rvm_map(rvm_t rvm, const char *segname, int size_to_create){
     newSegment->mapped = true;
     newSegment->beingModified = false;
     rvm.segmentList.push_back(newSegment);
+    RVM.segmentList.push_back(newSegment);
     cout << "segmentList size = " << rvm.segmentList.size() << "\n";
     cout << "exiting func: rvm_map\n";
     return newSegment->segmentData;
@@ -132,6 +134,7 @@ void rvm_unmap(rvm_t rvm, void *segbase){
     for(vector<Segment>::size_type i = 0; i != rvm.segmentList.size(); i++){
         if(segbase == rvm.segmentList[i]->segmentData){
             rvm.segmentList.erase(rvm.segmentList.begin()+i);
+            RVM.segmentList.erase(rvm.segmentList.begin()+i);
         }
     }
     cout << "segmentList size =" << rvm.segmentList.size() << "\n";
@@ -189,6 +192,7 @@ trans_t rvm_begin_trans(rvm_t rvm, int numsegs, void **segbases){
     transaction *newTransaction = (transaction*)malloc(sizeof(transaction));
     newTransaction->transactionID = TID;
     newTransaction->numOfSegs = numsegs;
+    newTransaction->undoLogList;
     newTransaction->segbases = segbases;
     globalTransactionList.push_back(newTransaction);
     rvm.transactionList.push_back(newTransaction);
@@ -210,12 +214,12 @@ void rvm_about_to_modify(trans_t tid, void *segbase, int offset, int size){
     for(vector<transaction*>::size_type i = 0; i != globalTransactionList.size(); i++){
         if(globalTransactionList[i]->transactionID == tid){
             newTransaction = globalTransactionList[i];
-            cout << "newTransaction id =" << newTransaction->transactionID << "\n";
+            cout << "newTransaction id = " << newTransaction->transactionID << "\n";
         }
     }
     for(int i = 0; i < newTransaction->numOfSegs; i++){
         if(newTransaction->segbases[i] == segbase){
-            cout << "enters first if" << "\n";
+            cout << "enters first if with " << RVM.segmentList.size() << "\n";
             for(vector<segment*>::size_type k = 0; k != RVM.segmentList.size(); k++){
                 cout << "RVMsegmentList size = " << RVM.segmentList.size() << "\n";
                 if(segbase == RVM.segmentList[k]->segmentData){
@@ -227,13 +231,14 @@ void rvm_about_to_modify(trans_t tid, void *segbase, int offset, int size){
             void *backup = malloc(size +1);
             memcpy(backup, (segbase + offset), size);
             string originalString = string((char*)(segbase));
-            log *undoRecord = (log*)malloc(sizeof(log));
+            log *undoRecord = (log*) malloc(sizeof(log));
             undoRecord->size = size;
             undoRecord->offset = offset;
+            undoRecord->data = backup;
             undoRecord->segmentName = Segment->segmentName;
-            //int copiedAmt = originalString.copy((char*)undoRecord->data,size,offset);
+            cout << "WTF\n";
             newTransaction->undoLogList.push_back(undoRecord);            
-                
+            cout << "Done with segbase" << "\n"; 
         }
         cout << "i=" << i<< "\n";
     }
