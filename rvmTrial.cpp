@@ -23,6 +23,9 @@
  *@param URL
  *@returns Web Content
  */
+rvm_t RVM;
+vector<transaction*> globalTransactionList;
+int TID = 0;
 int numberOfDirectories=0;
 int numOfSegments = 0;
 /**
@@ -40,10 +43,12 @@ rvm_t rvm_init(const char *directory){
 	status = mkdir(directory,S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 	if(status == 0){
 	 	numberOfDirectories++;
+		RVM = rvm;
 		return rvm;
 	}
-
-
+	else{
+		exit(-1);
+	}
 }
 
 /**
@@ -54,7 +59,7 @@ rvm_t rvm_init(const char *directory){
 void *rvm_map(rvm_t rvm, const char *segname, int size_to_create){
 
 	string contents;
-	char* data;	
+	//char* data;	
 	cout << "entered rvm_map\n";
 	//string directoryName = string(rvm.directoryName);
 	string homeDirectory = "/home/spurthi/spoorthi/CS6210/project4/";
@@ -158,9 +163,8 @@ void rvm_unmap(rvm_t rvm, void *segbase){
 	for(vector<Segment>::size_type i = 0; i != rvm.segmentList.size(); i++){
         	if(segbase == rvm.segmentList[i]->segmentData){
                  	rvm.segmentList.erase(rvm.segmentList.begin()+i);
-                        }
                 }
-
+        }
 }
 
 //destroy a segment completely, erasing its backing store. This function should not be called on a segment that is currently mapped.
@@ -170,15 +174,23 @@ void rvm_unmap(rvm_t rvm, void *segbase){
  *@returns void* (data contained in the segment)
  */
 void rvm_destroy(rvm_t rvm, const char *segname){ 
-/*	for(vector<Segment>::size_type i = 0; i != rvm.segmentList.size(); i++){
-		if(strcmp(rvm.segmentList[i].segmentName,segname)==0 && rvm.segmentList[i].mapped == false){
-			segmentList.erase(list.begin() + i);
-			free();
+	string directoryName = string(rvm.directoryName);
+	string pathToFile = directoryName + "/" + string(segname);
+	for(vector<Segment>::size_type i = 0; i != rvm.segmentList.size(); i++){
+		if(strcmp(rvm.segmentList[i]->segmentName,segname)==0 && rvm.segmentList[i]->mapped == false){
+			if(remove(pathToFile.c_str()) != 0 )
+    				perror( "Error deleting file" );
+  			else
+    				puts( "File successfully deleted" );
 			return;
+		}
+		else if(strcmp(rvm.segmentList[i]->segmentName,segname)==0 && rvm.segmentList[i]->mapped != false){
+			cout<< "segment is mapped\n";
 		}
 	}
 	cout << "wrong segname or segment is a mapped segment";
-	return;*/
+	return;
+
 }
 
 
@@ -205,10 +217,12 @@ trans_t rvm_begin_trans(rvm_t rvm, int numsegs, void **segbases){
 
 	}
 	transaction *newTransaction = (transaction*)malloc(sizeof(transaction));
-	newTransaction->transactionID = 1;
+	newTransaction->transactionID = TID;
 	newTransaction->numOfSegs = numsegs;
 	newTransaction->segbases = segbases;
+	globalTransactionList.push_back(newTransaction);
 	rvm.transactionList.push_back(newTransaction);
+	TID++;
 	return newTransaction->transactionID;
 }
 
@@ -219,15 +233,24 @@ trans_t rvm_begin_trans(rvm_t rvm, int numsegs, void **segbases){
  */
 void rvm_about_to_modify(trans_t tid, void *segbase, int offset, int size){
 	//with tid get transaction
-	for(int i = 0;i<transaction->numOfSegs;i++){
-		if(transaction->segbases[i] == segbase){
-			for(			
+	transaction *newTransaction = (transaction*)malloc(sizeof(transaction));
+	for(vector<transaction*>::size_type i = 0; i != globalTransactionList.size(); i++){
+		if(globalTransactionList[i]->transactionID == tid){
+			newTransaction = globalTransactionList[i];
+
+		}
+	}
+	for(int i = 0; i < newTransaction->numOfSegs; i++){
+		if(newTransaction->segbases[i] == segbase){
+			string originalString = string((char*)(segbase));
+			log *undoRecord = (log*)malloc(sizeof(log));
+			undoRecord->size = size;
+			originalString.copy((char*)undoRecord->data,size,offset); 
+			newTransaction->undoLogList.push_back(undoRecord);			
+						
 		}
 
 	}
-		
-
-
 
 }
 /**
@@ -236,6 +259,28 @@ void rvm_about_to_modify(trans_t tid, void *segbase, int offset, int size){
  *@returns void* (data contained in the segment)
  */
 void rvm_commit_trans(trans_t tid){
+	transaction *Transaction = (transaction*)malloc(sizeof(transaction));
+	segment *Segment = (segment*)malloc(sizeof(segment));
+        for(vector<transaction*>::size_type i = 0; i != globalTransactionList.size(); i++){
+                if(globalTransactionList[i]->transactionID == tid){
+                        Transaction = globalTransactionList[i];
+
+                }
+        }
+	for(int j = 0;j<Transaction->numOfSegs;j++){
+		for(vector<segment*>::size_type k = 0; k != RVM.segmentList.size(); k++){
+                	if(Transaction->segbases[j] == RVM.segmentList[k]->segmentData){
+				char* filename = RVM.segmentList[k].segmentName;
+				char* directoryName = RVM.directoryName;
+				string pathToFile = string(directoryName) + "/" + string(filename);
+				ofstream outfile(pathToString.c_str(),ofstream::binary);
+				outfile.write (Transaction->segbases[j],sizeof(Transaction->segbases[j]));
+			}
+		}
+	}
+
+	//remove all enries from undo log record
+	Transaction-
 
 
 
@@ -299,7 +344,7 @@ return listOfSegments;
      abort();
 }
 */
-int main(){
+/*int main(){
      int pid;
 
      pid = fork();
@@ -331,4 +376,4 @@ int main(){
      //proc2();
 
      return 0;
-}
+}*/

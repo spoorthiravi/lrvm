@@ -4,8 +4,8 @@
 //typedef int trans_t;
 using namespace std;
 typedef struct Log{
-	int logSize;
-	char* logData;
+	int size;
+	void* data;
 	struct segment;
 }log;
 typedef struct Segment{
@@ -20,7 +20,7 @@ typedef struct transaction{
 	trans_t transactionID;
 	void **segbases;
 	int numOfSegs;
-	vector<log*> duplicateLog;	
+	vector<log*> undoLogList;	
 }transaction;
 
 typedef struct rvm_t

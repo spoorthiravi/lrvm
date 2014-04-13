@@ -18,7 +18,7 @@ void proc1()
      trans_t trans;
      char* segs[1];
      
-     rvm = rvm_init("rvm_segments");
+     rvm = rvm_init("rvm1");
 /*     rvm_destroy(rvm, "testseg");
      segs[0] = (char *) rvm_map(rvm, "testseg", 10000);
 

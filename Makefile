@@ -9,7 +9,7 @@ RANLIB  = ranlib
 
 LIBRARY = librvm.a
 
-LIB_SRC = rvm1.cpp
+LIB_SRC = rvmTrial.cpp
 
 LIB_OBJ = $(patsubst %.cpp,%.o,$(LIB_SRC))
 
