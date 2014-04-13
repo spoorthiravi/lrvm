@@ -24,7 +24,7 @@
  *@returns Web Content
  */
 rvm_t RVM;
-vector<transaction*> globalTransactionList;
+vector<transaction> globalTransactionList;
 int TID = 0;
 int numberOfDirectories=0;
 int numOfSegments = 0;
@@ -189,18 +189,18 @@ trans_t rvm_begin_trans(rvm_t rvm, int numsegs, void **segbases){
             return -1;
         }
     }
-    transaction *newTransaction = (transaction*)malloc(sizeof(transaction));
-    newTransaction->transactionID = TID;
-    newTransaction->numOfSegs = numsegs;
-    newTransaction->undoLogList;
-    newTransaction->undoLogList.clear();
-    cout << "log list size = " << newTransaction->undoLogList.size() << "\n";
-    newTransaction->segbases = segbases;
+    transaction newTransaction;
+    newTransaction.transactionID = TID;
+    newTransaction.numOfSegs = numsegs;
+    newTransaction.undoLogList;
+    newTransaction.undoLogList.clear();
+    cout << "log list size = " << newTransaction.undoLogList.size() << "\n";
+    newTransaction.segbases = segbases;
     globalTransactionList.push_back(newTransaction);
-    rvm.transactionList.push_back(newTransaction);
+    rvm.transactionList.push_back(&newTransaction);
     TID++;
     cout << "exiting func: rvm_bein_trans\n";
-    return newTransaction->transactionID;
+    return newTransaction.transactionID;
 }
 
 /**
@@ -212,16 +212,17 @@ void rvm_about_to_modify(trans_t tid, void *segbase, int offset, int size){
     //with tid get transaction
     cout << "entering func: rvm_about_to_modify\n";
     segment *Segment = (segment*)malloc(sizeof(segment));
-    transaction *newTransaction = (transaction*)malloc(sizeof(transaction));
-    for(vector<transaction*>::size_type i = 0; i != globalTransactionList.size(); i++){
-        if(globalTransactionList[i]->transactionID == tid){
+    //transaction *newTransaction = (transaction*)malloc(sizeof(transaction));
+    transaction newTransaction;
+    for(vector<transaction>::size_type i = 0; i != globalTransactionList.size(); i++){
+        if(globalTransactionList[i].transactionID == tid){
             newTransaction = globalTransactionList[i];
-            cout << "newTransaction id = " << newTransaction->transactionID << "\n";
+            cout << "newTransaction id = " << newTransaction.transactionID << "\n";
 	    break;
         }
     }
-    for(int i = 0; i < newTransaction->numOfSegs; i++){
-        if(newTransaction->segbases[i] == segbase){
+    for(int i = 0; i < newTransaction.numOfSegs; i++){
+        if(newTransaction.segbases[i] == segbase){
             cout << "enters first if with " << RVM.segmentList.size() << "\n";
             for(vector<segment*>::size_type k = 0; k != RVM.segmentList.size(); k++){
                 cout << "RVMsegmentList size = " << RVM.segmentList.size() << "\n";
@@ -242,16 +243,17 @@ void rvm_about_to_modify(trans_t tid, void *segbase, int offset, int size){
             undoRecord->segmentName = Segment->segmentName;
 	    cout << "segment name = " << undoRecord->segmentName <<"\n";
             cout << "WTF\n";
-	    cout << "undoLogList size =" << newTransaction->undoLogList.size() << "\n";
-	    cout << "newTransaction id =" << newTransaction->transactionID << "\n";
-            newTransaction->undoLogList.push_back(undoRecord);    
-	    cout << "undoLogList size =" << newTransaction->undoLogList.size() << "\n";        
-            cout << "Done with segbase" << "\n"; 
+	    cout << "undoLogList size =" << newTransaction.undoLogList.size() << "\n";
+	    cout << "newTransaction id =" << newTransaction.transactionID << "\n";
+            newTransaction.undoLogList.push_back(undoRecord);    
+	    cout << "undoLogList size =" << newTransaction.undoLogList.size() << "\n";        
+            cout << "Done with segbase" << "\n";
+	    free(backup); 
 	    break;
         }
         cout << "i=" << i<< "\n";
     }
-    cout << "undoLogList size = " << newTransaction->undoLogList.size() << "\n";
+    cout << "undoLogList size = " << newTransaction.undoLogList.size() << "\n";
     cout << "exiting func: rvm_about_to_modify\n";
 
 }
@@ -261,7 +263,7 @@ void rvm_about_to_modify(trans_t tid, void *segbase, int offset, int size){
  *@returns void* (data contained in the segment)
  */
 void rvm_commit_trans(trans_t tid){
-    cout << "entering func: rvm_commit_trans\n";
+/*    cout << "entering func: rvm_commit_trans\n";
     transaction *Transaction = (transaction*)malloc(sizeof(transaction));
     //segment *Segment = (segment*)malloc(sizeof(segment));
     for(vector<transaction*>::size_type i = 0; i != globalTransactionList.size(); i++){
@@ -287,7 +289,7 @@ void rvm_commit_trans(trans_t tid){
     Transaction->undoLogList.clear();
     cout << "undoLogList size =" << Transaction->undoLogList.size() << "\n";
     cout << "exiting func: rvm_commit_trans\n";
-
+*/
 }
 /**
  *@brief undo all changes that have happened within the specified transaction.
@@ -295,7 +297,7 @@ void rvm_commit_trans(trans_t tid){
  *@returns void* (data contained in the segment)
  */
 void rvm_abort_trans(trans_t tid){
-    transaction *Transaction = (transaction*)malloc(sizeof(transaction));
+  /*  transaction *Transaction = (transaction*)malloc(sizeof(transaction));
     segment *Segment = (segment*)malloc(sizeof(segment));
     for(vector<transaction*>::size_type i = 0; i != globalTransactionList.size(); i++){
         if(globalTransactionList[i]->transactionID == tid){
@@ -317,7 +319,7 @@ void rvm_abort_trans(trans_t tid){
         }
     }
     return;
-
+*/
 }
 /**
  *@brief play through any committed or aborted items in the log file(s) and shrink the log file(s) as much as possible.
