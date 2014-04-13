@@ -60,7 +60,7 @@ void *rvm_map(rvm_t rvm, const char *segname, int size_to_create){
     cout << "entering func: rvm_map\n";
     //string directoryName = string(rvm.directoryName);
     string homeDirectory = "/home/spurthi/spoorthi/CS6210/project4/";
-    string pathToFile = homeDirectory + string(rvm.directoryName) + "/" + string(segname);
+    string pathToFile = string(rvm.directoryName) + "/" + string(segname);
     struct stat st;
     stat(pathToFile.c_str(), &st);
 
@@ -281,15 +281,14 @@ void rvm_commit_trans(trans_t tid){
                 //string directoryName = RVM.directoryName;
                 //cout << directoryName << "\n";
                 //string pathToFile = directoryName + "/" + filename;
-		string homeDirectory = "/home/spurthi/spoorthi/CS6210/project4/";
-                string pathToFile = homeDirectory + RVM.directoryName + string("/") + string(RVM.segmentList[k].segmentName);
+                string pathToFile = RVM.directoryName + string("/") + string(RVM.segmentList[k].segmentName);
                 cout << "pathToFile = " << pathToFile << "\n";
-		FILE *fp;
-		fp = fopen(pathToFile.c_str(), "wb");
-		cout << "file opened successfully\n";
-  		fwrite ((char*)Transaction.segbases[j],sizeof(char),RVM.segmentList[k].segmentSize,fp);
-		cout << "write completed \n";
-  		fclose (fp);
+		        FILE *fp;
+		        fp = fopen(pathToFile.c_str(), "wb");
+                cout << "file opened successfully\n";
+                fwrite ((char*)Transaction.segbases[j],sizeof(char),RVM.segmentList[k].segmentSize,fp);
+                cout << "write completed \n";
+                fclose(fp);
                 //ofstream outfile(pathToFile.c_str(),ofstream::binary);
                 //outfile.write ((char*)Transaction.segbases[j],RVM.segmentList[k].segmentSize);
                 cout << "Finished writing to the file \n";
@@ -302,7 +301,6 @@ void rvm_commit_trans(trans_t tid){
     globalTransactionList.insert((globalTransactionList.begin() + index),Transaction);
     cout << "undoLogList size =" << Transaction.undoLogList.size() << "\n";
     cout << "exiting func: rvm_commit_trans\n";
-
 }
 /**
  *@brief undo all changes that have happened within the specified transaction.
@@ -341,7 +339,7 @@ void rvm_abort_trans(trans_t tid){
  *@returns void* (data contained in the segment)
  */
 void rvm_truncate_log(rvm_t rvm){
-
+ 
 
 
 
