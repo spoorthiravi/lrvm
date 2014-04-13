@@ -17,7 +17,7 @@ typedef struct Segment{
 	bool beingModified;
 	Log undoLog;
 }segment;
-typedef struct transaction{
+typedef struct Transaction{
 	trans_t transactionID;
 	void **segbases;
 	int numOfSegs;

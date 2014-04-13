@@ -193,6 +193,8 @@ trans_t rvm_begin_trans(rvm_t rvm, int numsegs, void **segbases){
     newTransaction->transactionID = TID;
     newTransaction->numOfSegs = numsegs;
     newTransaction->undoLogList;
+    newTransaction->undoLogList.clear();
+    cout << "log list size = " << newTransaction->undoLogList.size() << "\n";
     newTransaction->segbases = segbases;
     globalTransactionList.push_back(newTransaction);
     rvm.transactionList.push_back(newTransaction);
@@ -215,6 +217,7 @@ void rvm_about_to_modify(trans_t tid, void *segbase, int offset, int size){
         if(globalTransactionList[i]->transactionID == tid){
             newTransaction = globalTransactionList[i];
             cout << "newTransaction id = " << newTransaction->transactionID << "\n";
+	    break;
         }
     }
     for(int i = 0; i < newTransaction->numOfSegs; i++){
@@ -226,19 +229,25 @@ void rvm_about_to_modify(trans_t tid, void *segbase, int offset, int size){
                     cout << "enters second if\n";
                     Segment = RVM.segmentList[k];
                     RVM.segmentList[k]->beingModified = true;
+		    break;
                 }
             }
             void *backup = malloc(size +1);
             memcpy(backup, (segbase + offset), size);
             string originalString = string((char*)(segbase));
-            log *undoRecord = (log*) malloc(sizeof(log));
+            log *undoRecord = (log*)malloc(sizeof(log));
             undoRecord->size = size;
             undoRecord->offset = offset;
             undoRecord->data = backup;
             undoRecord->segmentName = Segment->segmentName;
+	    cout << "segment name = " << undoRecord->segmentName <<"\n";
             cout << "WTF\n";
-            newTransaction->undoLogList.push_back(undoRecord);            
+	    cout << "undoLogList size =" << newTransaction->undoLogList.size() << "\n";
+	    cout << "newTransaction id =" << newTransaction->transactionID << "\n";
+            newTransaction->undoLogList.push_back(undoRecord);    
+	    cout << "undoLogList size =" << newTransaction->undoLogList.size() << "\n";        
             cout << "Done with segbase" << "\n"; 
+	    break;
         }
         cout << "i=" << i<< "\n";
     }
