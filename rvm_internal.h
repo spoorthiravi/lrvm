@@ -28,8 +28,8 @@ typedef struct rvm_t
 {
 int rvmID;
 const char* directoryName;
-vector<segment*> segmentList;
-vector<transaction*> transactionList;
+vector<segment> segmentList;
+vector<transaction> transactionList;
 }rvm_t;
 
 //vector<segment*> getSegments(rvm_t rvm,void **segbases,int numsegs);
