@@ -147,19 +147,16 @@ void rvm_destroy(rvm_t rvm, const char *segname){
     string directoryName = string(rvm.directoryName);
     string pathToFile = directoryName + "/" + string(segname);
     for(vector<Segment>::size_type i = 0; i != rvm.segmentList.size(); i++){
-        if(strcmp(rvm.segmentList[i].segmentName,segname)==0 && rvm.segmentList[i].mapped == false){
-            if(remove(pathToFile.c_str()) != 0 )
-                perror( "Error deleting file" );
-            else
-                puts( "File successfully deleted" );
-            return;
-        }
-        else if(strcmp(rvm.segmentList[i].segmentName,segname)==0 && rvm.segmentList[i].mapped != false){
-            cout<< "segment is mapped\n";
-        }
+        if(strcmp(rvm.segmentList[i].segmentName,segname)==0){
+		cout << "segment is mapped\n";
+	}
     }
-    cout << "wrong segname or segment is a mapped segment";
+    if(remove(pathToFile.c_str()) != 0 )
+    	perror( "Error deleting file" );
+    else
+        puts( "File successfully deleted" );
     return;
+ 
 
 }
 
@@ -308,30 +305,30 @@ void rvm_commit_trans(trans_t tid){
  *@returns void* (data contained in the segment)
  */
 void rvm_abort_trans(trans_t tid){
-    cout << "In abort \n";
-  /*  transaction *Transaction = (transaction*)malloc(sizeof(transaction));
-    segment *Segment = (segment*)malloc(sizeof(segment));
-    for(vector<transaction*>::size_type i = 0; i != globalTransactionList.size(); i++){
-        if(globalTransactionList[i]->transactionID == tid){
+    cout << "entering func: rvm_abort_trans \n";
+    transaction Transaction;
+    segment Segment;
+    for(vector<transaction>::size_type i = 0; i != globalTransactionList.size(); i++){
+        if(globalTransactionList[i].transactionID == tid){
             Transaction = globalTransactionList[i];
         }
     }
-    for(int j = 0;j<Transaction->numOfSegs;j++){
-        for(vector<segment*>::size_type k = 0; k != RVM.segmentList.size(); k++){
-            if(Transaction->segbases[j] == RVM.segmentList[k]->segmentData){
+    for(int j = 0;j<Transaction.numOfSegs;j++){
+        for(vector<segment>::size_type k = 0; k != RVM.segmentList.size(); k++){
+            if(Transaction.segbases[j] == RVM.segmentList[k].segmentData){
                 Segment = RVM.segmentList[k];
-                Segment->beingModified = false;
-                for(vector<log*>::size_type l = 0; l !=Transaction->undoLogList.size(); k++){
-                    if(Segment->segmentName == Transaction->undoLogList[l]->segmentName){
-                        string undoRecordData = string((char*)Transaction->undoLogList[l]->data);
-                        undoRecordData.copy((char*)Segment->segmentData,Transaction->undoLogList[l]->size,Transaction->undoLogList[l]->offset);
+                Segment.beingModified = false;
+                for(vector<log>::size_type l = 0; l !=Transaction.undoLogList.size(); k++){
+                    if(Segment.segmentName == Transaction.undoLogList[l]->segmentName){
+                        string undoRecordData = string((char*)Transaction.undoLogList[l]->data);
+                        undoRecordData.copy((char*)Segment.segmentData,Transaction.undoLogList[l].size,Transaction.undoLogList[l].offset);
                     }
                 }
             }
         }
     }
     return;
-*/
+
 }
 /**
  *@brief play through any committed or aborted items in the log file(s) and shrink the log file(s) as much as possible.
